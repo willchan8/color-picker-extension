@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ThemeToggler from './ThemeToggler';
 
 /**
  * --- TODO:
@@ -84,20 +85,20 @@ const ColorPicker = () => {
           </i>
           Open Eyedropper
         </button>
-        <p className="text-white text-sm my-2">
-          Or press <span className="border rounded-md border-white px-2">i</span> to open eyedropper.
+        <p className="text-sm my-2">
+          Or press <span className="border rounded-md border-black dark:border-white px-2">i</span> to open eyedropper.
         </p>
         {hexColor && (
           <div className="w-full h-16 flex items-center gap-3">
             <div className="w-6 h-6 rounded-md border border-gray-300" style={{ background: hexColor }}></div>
             <button
-              className="border-none round-md bg-transparent grid place-items-center text-white text-md"
+              className="border-none round-md bg-transparent grid place-items-center  text-md"
               onClick={() => copyColor('hex')}
             >
               <span>{hexColor}</span>
             </button>
             <button
-              className="border-none round-md bg-transparent grid place-items-center text-white text-md"
+              className="border-none round-md bg-transparent grid place-items-center  text-md"
               onClick={() => copyColor('rgb')}
             >
               <span>{hexToRGB(hexColor)}</span>
@@ -124,8 +125,9 @@ const ColorPicker = () => {
             </i>
           </div>
         )}
-        <p className="text-base text-slate-200">Made with ❤️ by William Chan</p>
+        <p className="text-base">Made with ❤️ by William Chan</p>
       </div>
+      <ThemeToggler />
     </div>
   );
 };

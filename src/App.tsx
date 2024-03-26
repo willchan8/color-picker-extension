@@ -1,5 +1,9 @@
-import './App.css';
 import ColorPicker from './components/ColorPicker';
+import ThemeContextProvider from './contexts/themeContext';
 
-const App = () => <ColorPicker />;
+const App = () => (
+  <ThemeContextProvider>
+    <ColorPicker />
+  </ThemeContextProvider>
+);
 export default App;
