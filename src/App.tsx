@@ -8,6 +8,7 @@ const App = () => (
     <ColorPicker />
     <ThemeToggler />
     <Toaster />
+    <p className="text-xs">Made with 🩶 by William Chan</p>
   </ThemeContextProvider>
 );
 export default App;

@@ -1,30 +1,36 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import useKeyboardShortcut from '../hooks/useKeyboardShortcut';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import Copy from './icons/Copy';
-import Check from './icons/Check';
+import CopyButton from './CopyButton';
+import { cn } from '../lib/utils';
 
 /**
  * --- TODO:
- *
- * 1. Replace alert with snackbar
- * 2. Continous color selection
- * 3. Save/delete copied colors
- * 4. Upload + drag 'n drop images
- * 5. Automatically pull pallette out of webpage or image
- * 6. Calculate complimentary colors
+ * 1. Save/delete copied colors
+ * 2. Upload + drag 'n drop images
+ * 3. Automatically pull pallette out of webpage or image
+ * 4. Calculate complimentary colors
  */
 
-const ColorPicker = () => {
+export default function ColorPicker() {
   const { toast } = useToast();
-  const [hexColor, setHexColor] = useState<string>('');
+  const [colors, setColors] = useState<Set<string>>(new Set([]));
+  const [copiedColor, setCopiedColor] = useState<string>('');
+  const timerId = useRef(null);
 
   const openEyeDropper = async () => {
     let eyeDropper = new (window as any).EyeDropper();
     try {
       const { sRGBHex } = await eyeDropper.open();
-      setHexColor(sRGBHex);
+      if (colors.has(sRGBHex)) {
+        toast({
+          description: `❗️ ${sRGBHex} already added to list!`,
+        });
+        return;
+      } else {
+        setColors(new Set([...colors, sRGBHex]));
+      }
     } catch (e) {
       console.error(e);
     }
@@ -47,25 +53,9 @@ const ColorPicker = () => {
     return `rgb(${r}, ${g}, ${b})`;
   };
 
-  const copyColor = async (type: 'hex' | 'rgb') => {
-    const color = {
-      hex: hexColor,
-      rgb: hexToRGB(hexColor),
-    }[type];
-
-    try {
-      navigator.clipboard.writeText(color);
-      toast({
-        description: `Copied ${color} to clipboard!`,
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   return (
-    <div className="min-w-[400px]">
-      <h1 className="font-semibold text-2xl md:text-3xl lg:text-5xl mb-2 md:mb-3">Color Picker</h1>
+    <section className="max-w-[440px] min-h-[400px]">
+      <h1 className="font-bold text-4xl mb-2 md:mb-3">Color Picker</h1>
       <div>
         <Button
           className="w-full flex items-center justify-center bg-indigo-700 hover:bg-indigo-600 text-white border-none text-base p-6 rounded-lg transition"
@@ -86,30 +76,33 @@ const ColorPicker = () => {
         </Button>
         <p className="text-sm my-2">
           Or press <span className="border rounded-md border-black dark:border-white px-2">i</span> to open eyedropper.
+          Press <span className="border rounded-md border-black dark:border-white px-2">esc</span> to close eyedropper.
         </p>
-        {hexColor && (
-          <div className="w-full h-16 flex items-center gap-3">
-            <div className="w-6 h-6 rounded-md border border-gray-300" style={{ background: hexColor }}></div>
-            <Button variant="outline" onClick={() => copyColor('hex')}>
-              <span>{hexColor}</span>
-              <i className="self-start ml-2">
-                <Copy className="w-4 h-4" />
-                <Check className="w-4 h-4 hidden" />
-              </i>
-            </Button>
-            <Button variant="outline" onClick={() => copyColor('rgb')}>
-              <span>{hexToRGB(hexColor)}</span>
-              <i className="self-start ml-2">
-                <Copy className="w-4 h-4" />
-                <Check className="w-4 h-4 hidden" />
-              </i>
-            </Button>
-          </div>
-        )}
-        <p className="text-xs">Made with ❤️ by William Chan</p>
+        {colors.size > 0 &&
+          [...colors].map((hexColor, index) => (
+            <div
+              className={cn(
+                'w-full h-16 flex items-center gap-3 border-b border-gray-300 dark:border-gray-700',
+                index === colors.size - 1 && 'border-b-0'
+              )}
+              key={hexColor}
+            >
+              <div className="w-10 h-10 rounded-md border border-gray-300" style={{ backgroundColor: hexColor }}></div>
+              {[hexColor, hexToRGB(hexColor)].map((color, index) => (
+                <CopyButton
+                  color={color}
+                  key={index}
+                  copiedColor={copiedColor}
+                  setCopiedColor={setCopiedColor}
+                  timerId={timerId}
+                  className="flex-1 justify-between"
+                >
+                  {color}
+                </CopyButton>
+              ))}
+            </div>
+          ))}
       </div>
-    </div>
+    </section>
   );
-};
-
-export default ColorPicker;
+}
