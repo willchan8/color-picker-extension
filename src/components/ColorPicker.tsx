@@ -1,13 +1,14 @@
 import { useState, useRef } from 'react';
-import useKeyboardShortcut from '../hooks/useKeyboardShortcut';
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import CopyButton from './CopyButton';
-import { cn } from '../lib/utils';
+import CopyButton from '@/components/CopyButton';
+import { cn } from '@/lib/utils';
+import CloseButton from '@/components/CloseButton';
 
 /**
  * --- TODO:
- * 1. Save/delete copied colors
+ * 1. Save copied colors
  * 2. Upload + drag 'n drop images
  * 3. Automatically pull pallette out of webpage or image
  * 4. Calculate complimentary colors
@@ -15,7 +16,7 @@ import { cn } from '../lib/utils';
 
 export default function ColorPicker() {
   const { toast } = useToast();
-  const [colors, setColors] = useState<Set<string>>(new Set([]));
+  const [colors, setColors] = useState<string[]>([]);
   const [copiedColor, setCopiedColor] = useState<string>('');
   const timerId = useRef(null);
 
@@ -23,13 +24,13 @@ export default function ColorPicker() {
     let eyeDropper = new (window as any).EyeDropper();
     try {
       const { sRGBHex } = await eyeDropper.open();
-      if (colors.has(sRGBHex)) {
+      if (colors.includes(sRGBHex)) {
         toast({
           description: `❗️ ${sRGBHex} already added to list!`,
         });
         return;
       } else {
-        setColors(new Set([...colors, sRGBHex]));
+        setColors([...colors, sRGBHex]);
       }
     } catch (e) {
       console.error(e);
@@ -53,8 +54,13 @@ export default function ColorPicker() {
     return `rgb(${r}, ${g}, ${b})`;
   };
 
+  const handleDelete = (hexColor: string) => {
+    const colorsCopy = [...colors];
+    setColors(colorsCopy.filter((color) => hexColor !== color));
+  };
+
   return (
-    <section className="max-w-[440px] min-h-[400px]">
+    <section className="w-[480px] min-h-[400px]">
       <h1 className="font-bold text-4xl mb-2 md:mb-3">Color Picker</h1>
       <div>
         <Button
@@ -78,12 +84,12 @@ export default function ColorPicker() {
           Or press <span className="border rounded-md border-black dark:border-white px-2">i</span> to open eyedropper.
           Press <span className="border rounded-md border-black dark:border-white px-2">esc</span> to close eyedropper.
         </p>
-        {colors.size > 0 &&
+        {colors.length > 0 &&
           [...colors].map((hexColor, index) => (
             <div
               className={cn(
                 'w-full h-16 flex items-center gap-3 border-b border-gray-300 dark:border-gray-700',
-                index === colors.size - 1 && 'border-b-0'
+                index === colors.length - 1 && 'border-b-0'
               )}
               key={hexColor}
             >
@@ -95,11 +101,12 @@ export default function ColorPicker() {
                   copiedColor={copiedColor}
                   setCopiedColor={setCopiedColor}
                   timerId={timerId}
-                  className="flex-1 justify-between"
+                  className="flex-1 justify-between gap-2"
                 >
                   {color}
                 </CopyButton>
               ))}
+              <CloseButton onClick={() => handleDelete(hexColor)} />
             </div>
           ))}
       </div>

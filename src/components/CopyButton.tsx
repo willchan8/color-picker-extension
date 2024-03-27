@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import Copy from './icons/Copy';
-import Check from './icons/Check';
-import { cn } from '../lib/utils';
+import Copy from '@/components/icons/Copy';
+import Check from '@/components/icons/Check';
+import { cn } from '@/lib/utils';
 
 export default function CopyButton({
   children,
