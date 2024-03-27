@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import CopyButton from '@/components/CopyButton';
 import { cn } from '@/lib/utils';
 import CloseButton from '@/components/CloseButton';
+import Eyedrop from '@/components/icons/Eyedrop';
 
 /**
  * --- TODO:
@@ -24,14 +25,21 @@ export default function ColorPicker() {
     let eyeDropper = new (window as any).EyeDropper();
     try {
       const { sRGBHex } = await eyeDropper.open();
-      if (colors.includes(sRGBHex)) {
-        toast({
-          description: `❗️ ${sRGBHex} already added to list!`,
-        });
-        return;
-      } else {
-        setColors([...colors, sRGBHex]);
-      }
+      /*
+       * Need to use the functional update form of setColors to avoid stale state issue.
+       * Without it, the `colors` state captured in the `useEffect` closure might not be the latest state when the event listener is triggered.
+       * https://stackoverflow.com/questions/55154186/react-hooks-usestateuseeffectevent-gives-stale-state
+       */
+      setColors((prevColors) => {
+        if (prevColors.includes(sRGBHex)) {
+          toast({
+            description: `❗️ ${sRGBHex} already added to list!`,
+          });
+          return prevColors;
+        } else {
+          return [...prevColors, sRGBHex];
+        }
+      });
     } catch (e) {
       console.error(e);
     }
@@ -64,20 +72,10 @@ export default function ColorPicker() {
       <h1 className="font-bold text-4xl mb-2 md:mb-3">Color Picker</h1>
       <div>
         <Button
-          className="w-full flex items-center justify-center bg-indigo-700 hover:bg-indigo-600 text-white border-none text-base p-6 rounded-lg transition"
+          className="w-full flex items-center justify-center gap-2 bg-indigo-700 hover:bg-indigo-600 text-white border-none text-base p-6 rounded-lg transition"
           onClick={openEyeDropper}
         >
-          <i id="action-icon" className="w-8">
-            <svg
-              id="picker-icon"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 12 12"
-              fill="currentColor"
-              className="w-5 h-5"
-            >
-              <path d="m1.3 7.58 2.83-2.83 1.06 1.06-2.83 2.83c-.07.07-.11.16-.11.26v.85h.85c.1 0 .19-.04.26-.11l2.83-2.83 1.06 1.06-2.83 2.83c-.35.35-.83.55-1.33.55H2.1l-.94.62c-.3.2-.69.16-.95-.09a.755.755 0 0 1-.09-.95l.62-.94V8.9c0-.5.2-.98.55-1.33ZM11.32.69c.91.91.91 2.39 0 3.31L8.94 6.38l.22.22c.29.29.29.77 0 1.06s-.77.29-1.06 0L4.35 3.91c-.29-.29-.29-.77 0-1.06s.77-.29 1.06 0l.22.22L8.01.69c.91-.91 2.4-.91 3.31 0Z"></path>
-            </svg>
-          </i>
+          <Eyedrop className="w-5 h-5" />
           Open Eyedropper
         </Button>
         <p className="text-sm my-2">
