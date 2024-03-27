@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react';
-import ThemeToggler from './ThemeToggler';
+import { useState } from 'react';
+import useKeyboardShortcut from '../hooks/useKeyboardShortcut';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
+import Copy from './icons/Copy';
+import Check from './icons/Check';
 
 /**
  * --- TODO:
@@ -13,20 +17,8 @@ import ThemeToggler from './ThemeToggler';
  */
 
 const ColorPicker = () => {
+  const { toast } = useToast();
   const [hexColor, setHexColor] = useState<string>('');
-
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'i') {
-        openEyeDropper();
-      }
-    }
-
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  });
 
   const openEyeDropper = async () => {
     let eyeDropper = new (window as any).EyeDropper();
@@ -37,6 +29,11 @@ const ColorPicker = () => {
       console.error(e);
     }
   };
+
+  useKeyboardShortcut({
+    key: 'i',
+    onKeyPress: openEyeDropper,
+  });
 
   const hexToRGB = (hex: string, alpha?: string | number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -58,18 +55,20 @@ const ColorPicker = () => {
 
     try {
       navigator.clipboard.writeText(color);
-      alert(`Copied ${color} to clipboard!`);
+      toast({
+        description: `Copied ${color} to clipboard!`,
+      });
     } catch (e) {
       console.error(e);
     }
   };
 
   return (
-    <div className="min-w-[400px] min-h-[100vh]">
+    <div className="min-w-[400px]">
       <h1 className="font-semibold text-2xl md:text-3xl lg:text-5xl mb-2 md:mb-3">Color Picker</h1>
       <div>
-        <button
-          className="w-full flex items-center justify-center bg-indigo-700 hover:bg-indigo-600 text-white border-none text-base p-4 rounded-lg transition"
+        <Button
+          className="w-full flex items-center justify-center bg-indigo-700 hover:bg-indigo-600 text-white border-none text-base p-6 rounded-lg transition"
           onClick={openEyeDropper}
         >
           <i id="action-icon" className="w-8">
@@ -84,50 +83,31 @@ const ColorPicker = () => {
             </svg>
           </i>
           Open Eyedropper
-        </button>
+        </Button>
         <p className="text-sm my-2">
           Or press <span className="border rounded-md border-black dark:border-white px-2">i</span> to open eyedropper.
         </p>
         {hexColor && (
           <div className="w-full h-16 flex items-center gap-3">
             <div className="w-6 h-6 rounded-md border border-gray-300" style={{ background: hexColor }}></div>
-            <button
-              className="border-none round-md bg-transparent grid place-items-center  text-md"
-              onClick={() => copyColor('hex')}
-            >
+            <Button variant="outline" onClick={() => copyColor('hex')}>
               <span>{hexColor}</span>
-            </button>
-            <button
-              className="border-none round-md bg-transparent grid place-items-center  text-md"
-              onClick={() => copyColor('rgb')}
-            >
+              <i className="self-start ml-2">
+                <Copy className="w-4 h-4" />
+                <Check className="w-4 h-4 hidden" />
+              </i>
+            </Button>
+            <Button variant="outline" onClick={() => copyColor('rgb')}>
               <span>{hexToRGB(hexColor)}</span>
-            </button>
-            <i className="self-start mt-3 mr-3">
-              <svg
-                id="copy"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 12 12"
-                className="w-4 h-4"
-                fill="currentColor"
-              >
-                <path d="M6.4 9.75h1.1v.75c0 .83-.67 1.5-1.5 1.5H1.5C.67 12 0 11.33 0 10.5v-6C0 3.67.67 3 1.5 3h2.25v1.13H1.5a.38.38 0 0 0-.38.38l-.02 6c0 .21.17.38.38.38H6c.21 0 .38-.17.38-.38l.02-.75ZM12 2.19V7.5c0 .83-.67 1.5-1.5 1.5H6c-.83 0-1.5-.67-1.52-1.5v-6c0-.83.67-1.5 1.5-1.5h3.83c.2 0 .39.08.53.22l1.44 1.44c.14.14.22.33.22.53Z"></path>
-              </svg>
-              <svg
-                id="check"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 10.49 7.31"
-                className="w-4 h-4 hidden"
-                fill="currentColor"
-              >
-                <path d="M10.31.16c.24.22.24.58 0 .78L4.12 7.13c-.2.24-.56.24-.78 0L.16 3.94c-.22-.2-.22-.56 0-.78.22-.22.58-.22.8 0l2.79 2.79L9.54.16c.22-.22.58-.22.78 0Z"></path>
-              </svg>
-            </i>
+              <i className="self-start ml-2">
+                <Copy className="w-4 h-4" />
+                <Check className="w-4 h-4 hidden" />
+              </i>
+            </Button>
           </div>
         )}
-        <p className="text-base">Made with ❤️ by William Chan</p>
+        <p className="text-xs">Made with ❤️ by William Chan</p>
       </div>
-      <ThemeToggler />
     </div>
   );
 };
